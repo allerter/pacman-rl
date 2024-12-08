@@ -2,7 +2,7 @@ import gym
 from gym import logger
 
 # TODO set the desired number of games to play
-episode_count = 1
+episode_count = 1000
 
 # Set to False to disable that information about the current state of the game are printed out on the console
 # Be aware that the gameworld is printed transposed to the console, to avoid mapping the coordinates and actions
