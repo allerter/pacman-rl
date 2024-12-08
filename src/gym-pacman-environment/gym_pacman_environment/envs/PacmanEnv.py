@@ -173,20 +173,20 @@ class PacmanEnv(gym.Env):
         offsets = self.movementOffsets(action)
         if self.outOfBounds(offsets, pacman):
             return False
-        destination = self.view[pacman.x + offsets[0]][pacman.y + offsets[1]]
+        destination = self.view[pacman.x + offsets[1]][pacman.y + offsets[0]]
         if destination == PacmanAgent.tileTypes["wall"]:
             return False
         elif destination == PacmanAgent.tileTypes["dot"]:
             self.view[pacman.x][pacman.y] = PacmanAgent.tileTypes["empty"]
-            pacman.x = pacman.x + offsets[0]
-            pacman.y = pacman.y + offsets[1]
+            pacman.x = pacman.x + offsets[1]
+            pacman.y = pacman.y + offsets[0]
             self.view[pacman.x][pacman.y] = PacmanAgent.tileTypes["pacman"]
             self.remainingDots = self.remainingDots - 1
             return self.remainingDots == 0
         elif destination == PacmanAgent.tileTypes["empty"]:
             self.view[pacman.x][pacman.y] = PacmanAgent.tileTypes["empty"]
-            pacman.x = pacman.x + offsets[0]
-            pacman.y = pacman.y + offsets[1]
+            pacman.x = pacman.x + offsets[1]
+            pacman.y = pacman.y + offsets[0]
             self.view[pacman.x][pacman.y] = PacmanAgent.tileTypes["pacman"]
             return False
         elif destination == PacmanAgent.tileTypes["ghost_hunter"] or destination == PacmanAgent.tileTypes["ghost_rnd"]:
