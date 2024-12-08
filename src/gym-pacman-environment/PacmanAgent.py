@@ -91,9 +91,9 @@ if __name__ == "__main__":
 
         while True:
             # Determine the agent's next action based on the current observation and reward and execute it
-            env.render()
             # TODO better action selection
             action = env.action_space.sample()
+            env.render(action)
             observation, reward, done, debug = env.step(action)
             if done:
                 break

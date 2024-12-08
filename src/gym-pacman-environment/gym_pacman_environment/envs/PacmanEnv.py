@@ -40,6 +40,7 @@ class PacmanEnv(gym.Env):
     def __init__(self):  # TODO set to 4
         self.action_space = spaces.Discrete(4)  # up, left, right, down
 
+        self.last_action = 0
         self.turns = 0
         self.totalDots = 0
         self.remainingDots = 0
@@ -59,7 +60,10 @@ class PacmanEnv(gym.Env):
         self.path = os.path.dirname(os.path.abspath(__file__))
 
         self.img_path = self.path + "/../img/"
-        self.pacman_img = pygame.image.load(self.img_path + "pacman_red_MyAgent.png")
+        self.pacman_img_up = pygame.image.load(self.img_path + "pacman_red_MyAgent_up.png")
+        self.pacman_img_left = pygame.image.load(self.img_path + "pacman_red_MyAgent_left.png")
+        self.pacman_img_right = pygame.image.load(self.img_path + "pacman_red_MyAgent_right.png")
+        self.pacman_img_down = pygame.image.load(self.img_path + "pacman_red_MyAgent_down.png")
         self.ghost_rnd_img = pygame.image.load(self.img_path + "ghost_blue_SIMPLE_RANDOM.png")
         self.ghost_hunter_img = pygame.image.load(self.img_path + "hw_ghost_hunter.png")
         self.dot_img = pygame.image.load(self.img_path + "dot.png")
@@ -334,10 +338,10 @@ class PacmanEnv(gym.Env):
 
         return np.array(self.convert_tiletypes(self.view))
 
-    def render(self, mode='human'):
-        return self._render_frame()
+    def render(self, action, mode='human'):
+        return self._render_frame(action)
 
-    def _render_frame(self):
+    def _render_frame(self, action):
         if self.window is None:
             pygame.display.init()
             self.window = pygame.display.set_mode((self.window_size, self.window_size))
@@ -362,7 +366,20 @@ class PacmanEnv(gym.Env):
                 elif self.view[y][x] == PacmanAgent.tileTypes["ghost_rnd"]:
                     canvas.blit(self.ghost_rnd_img, (x * self.tile_size, y * self.tile_size))
                 elif self.view[y][x] == PacmanAgent.tileTypes["pacman"]:
-                    canvas.blit(self.pacman_img, (x * self.tile_size, y * self.tile_size))
+                    # other action means pacman waits and we paint the same as the action before 
+                    if action < 0 or action > 3:
+                        action = self.last_action
+                    
+                    if action == 0:
+                        pacman_img = self.pacman_img_up
+                    elif action == 1:
+                        pacman_img = self.pacman_img_left
+                    elif action == 2:
+                        pacman_img = self.pacman_img_right
+                    elif action == 3:
+                        pacman_img = self.pacman_img_down
+                    canvas.blit(pacman_img, (x * self.tile_size, y * self.tile_size))
+                    self.last_action = action
 
         # The following line copies our drawings from `canvas` to the visible window
         self.window.blit(canvas, (0, 0))
