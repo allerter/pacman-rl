@@ -1,5 +1,6 @@
 import gym
 from gym import logger
+from utils import get_level
 
 # TODO set the desired number of games to play
 episode_count = 1000
@@ -8,16 +9,7 @@ episode_count = 1000
 # Be aware that the gameworld is printed transposed to the console, to avoid mapping the coordinates and actions
 printState = True
 
-# TODO Set this to the desired level
-level = [
-    ["#", "#", "#", "#", "#", "#", "#"],
-    ["#", "*", "*", "P", "*", "*", "#"],
-    ["*", "*", "#", "*", "#", "*", "*"],
-    ["#", "*", "*", "*", "*", "*", "#"],
-    ["#", "#", "*", "#", "*", "#", "#"],
-    ["#", "H", "*", "*", "*", "R", "#"],
-    ["#", "#", "#", "*", "#", "#", "#"],
-]
+level = get_level("RL01_straight_tunnel")
 
 # You can set this to False to change the agent's observation to Box from OpenAIGym - see also PacmanEnv.py
 # Otherwise a 2D array of tileTypes will be used
