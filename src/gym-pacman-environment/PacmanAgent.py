@@ -9,7 +9,7 @@ episode_count = 1000
 # Be aware that the gameworld is printed transposed to the console, to avoid mapping the coordinates and actions
 printState = True
 
-level_name = "RL05_intersecting_tunnels_H_R"
+level_name = "RL04_square_tunnel_deadends_H"
 level = get_level(level_name)
 
 # You can set this to False to change the agent's observation to Box from OpenAIGym - see also PacmanEnv.py

@@ -8,10 +8,10 @@ if __name__ == "__main__":
     env = PacmanAgent()
     learning_rates = [0.2]
     discount_factors = [0.5]
-    exploration_probs = [0.2]
-    simulated_steps = [10]
+    exploration_probs = [0.1, 0.25]
+    simulated_steps = [3, 7]
     results_matrix = np.zeros((len(learning_rates), len(discount_factors), len(exploration_probs), len(simulated_steps)))
-    epochs = 5000
+    epochs = 1000
     model = DynaQ
 
     for i, learning_rate in enumerate(learning_rates):
