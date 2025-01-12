@@ -9,7 +9,8 @@ episode_count = 1000
 # Be aware that the gameworld is printed transposed to the console, to avoid mapping the coordinates and actions
 printState = True
 
-level = get_level("RL01_straight_tunnel")
+level_name = "RL02_square_tunnel_H"
+level = get_level(level_name)
 
 # You can set this to False to change the agent's observation to Box from OpenAIGym - see also PacmanEnv.py
 # Otherwise a 2D array of tileTypes will be used
@@ -25,6 +26,16 @@ tileTypes = {
     "ghost_rnd": "R",
     "ghost_hunter": "H",
 }
+
+ENTITIES_MAP = {
+    "empty": 0,
+    "dot": 2,
+    "wall": 1,
+    "pacman": 3,
+    "random_ghost": 4,
+    "hunter_ghost": 5,
+}
+
 
 # Will be automatically set to True by the PacmanAgent if it is used and should not be set manually
 usingPythonAgent = False

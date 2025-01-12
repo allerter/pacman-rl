@@ -164,7 +164,7 @@ class PacmanEnv(gym.Env):
             yOffset = 0
         else:
             raise Exception("Unhandled Case " + action)
-        return yOffset, xOffset 
+        return xOffset, yOffset 
 
     def outOfBounds(self, offsets, entity):
         if entity.x + offsets[0] < 0 or entity.x + offsets[0] > len(self.view) - 1:
