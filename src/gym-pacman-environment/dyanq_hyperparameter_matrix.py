@@ -6,9 +6,9 @@ import numpy as np
 
 if __name__ == "__main__":
     env = PacmanAgent()
-    learning_rates = [0.2]
-    discount_factors = [0.5]
-    exploration_probs = [0.1, 0.25]
+    learning_rates = [0.2, 0.5]
+    discount_factors = [0.5, 0.8]
+    exploration_probs = [0.1, 0.2, 0.4]
     simulated_steps = [3, 7]
     results_matrix = np.zeros((len(learning_rates), len(discount_factors), len(exploration_probs), len(simulated_steps)))
     epochs = 1000
