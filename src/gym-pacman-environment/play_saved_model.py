@@ -14,5 +14,5 @@ if __name__ == "__main__":
     if filename.lower().startswith("dynaq"):
         model = DynaQ.load(env, filename)
     else:
-        model = DQN.load(filename)
+        model = DQN.load(env, filename)
     model.play()
