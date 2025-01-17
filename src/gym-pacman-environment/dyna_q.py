@@ -68,17 +68,29 @@ class DynaQ:
         useful_actions = []
         position = self.find_entities(state, "pacman")[0]
         # north
-        if state[position[0] - 1, position[1]] != 1:
-            useful_actions.append(1)
+        try:
+            if state[position[0] - 1, position[1]] != 1:
+                useful_actions.append(1)
+        except IndexError:
+            pass
         # west
-        if state[position[0], position[1] - 1] != 1:
-            useful_actions.append(0)
+        try:
+            if state[position[0], position[1] - 1] != 1:
+                useful_actions.append(0)
+        except IndexError:
+            pass
         # east
-        if state[position[0], position[1] + 1] != 1:
-            useful_actions.append(3)
+        try:
+            if state[position[0], position[1] + 1] != 1:
+                useful_actions.append(3)
+        except IndexError:
+            pass
         # south
-        if state[position[0] + 1, position[1]] != 1:
-            useful_actions.append(2)
+        try:
+            if state[position[0] + 1, position[1]] != 1:
+                useful_actions.append(2)
+        except IndexError:
+            pass
         return useful_actions
 
     def get_best_action(self, state):
@@ -88,46 +100,69 @@ class DynaQ:
         useful_directions = []
         available_actions = []
         # north
-        if state[position[0] - 1, position[1]] != 1:
-            available_actions.append(1)
-            for ghost in ghost_positions:
-                if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0] - 1) + abs(ghost[1] - position[1])):
-                    useful_directions.append("north")
-                    break
+        try:
+            if state[position[0] - 1, position[1]] != 1:
+                available_actions.append(1)
+                for ghost in ghost_positions:
+                    if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0] - 1) + abs(ghost[1] - position[1])):
+                        useful_directions.append("north")
+                        break
+        except IndexError:
+            pass     
         # west
-        if state[position[0], position[1] - 1] != 1:
-            available_actions.append(0)
-            for ghost in ghost_positions:
-                if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] - 1)):
-                    useful_directions.append("west")
-                    break
+        try:
+            if state[position[0], position[1] - 1] != 1:
+                available_actions.append(0)
+                for ghost in ghost_positions:
+                    if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] - 1)):
+                        useful_directions.append("west")
+                        break
+        except IndexError:
+            pass                            
         # east
-        if state[position[0], position[1] + 1] != 1:
-            available_actions.append(3)
-            for ghost in ghost_positions:
-                if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] + 1)):
-                    useful_directions.append("east")
-                    break
+        try:
+            if state[position[0], position[1] + 1] != 1:
+                available_actions.append(3)
+                for ghost in ghost_positions:
+                    if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] + 1)):
+                        useful_directions.append("east")
+                        break
+        except IndexError:
+            pass
         # south
-        if state[position[0] + 1, position[1]] != 1:
-            available_actions.append(2)
-            for ghost in ghost_positions:
-                if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] + 1)) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])):
-                    useful_directions.append("south")
-                    break
-
+        try:
+            if state[position[0] + 1, position[1]] != 1:
+                available_actions.append(2)
+                for ghost in ghost_positions:
+                    if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] + 1)) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])):
+                        useful_directions.append("south")
+                        break
+        except IndexError:
+            pass
         # north
-        if "north" in useful_directions and state[position[0] - 1, position[1]] == 2:
-            useful_actions.append(1)
+        try:
+            if "north" in useful_directions and state[position[0] - 1, position[1]] == 2:
+                useful_actions.append(1)
+        except IndexError:
+            pass
         # west
-        if "west" in useful_directions and state[position[0], position[1] - 1] == 2:
-            useful_actions.append(0)
+        try:
+            if "west" in useful_directions and state[position[0], position[1] - 1] == 2:
+                useful_actions.append(0)
+        except IndexError:
+            pass
         # east
-        if "east" in useful_directions and state[position[0], position[1] + 1] == 2:
-            useful_actions.append(3)
+        try:
+            if "east" in useful_directions and state[position[0], position[1] + 1] == 2:
+                useful_actions.append(3)
+        except IndexError:
+            pass
         # south
-        if "south" in useful_directions and state[position[0] + 1, position[1]] == 2:
-            useful_actions.append(2)
+        try:
+            if "south" in useful_directions and state[position[0] + 1, position[1]] == 2:
+                useful_actions.append(2)
+        except IndexError:
+            pass
 
         if not useful_actions:
             for direction in useful_directions:
