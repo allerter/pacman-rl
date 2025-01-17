@@ -55,14 +55,9 @@ if __name__ == "__main__":
     discount_factor = float(config['normal']['discount_factor'])
     exploration_prob = float(config['normal']['exploration_prob'])
     simulated_steps = int(config['normal']['simulated_steps'])
-    env = PacmanAgent.PacmanAgent()
 
-    
+    # train and play
+    env = PacmanAgent.PacmanAgent()
     model = DynaQ(env, epochs, learning_rate, discount_factor, exploration_prob, simulated_steps)
-    rewards = model.train()
-    # plot_rewards(rewards)
-    # model.save()
-    # current_dir = Path(__file__).resolve().parent
-    # filename = os.path.join(current_dir,"DynaQ - RL05_intersecting_tunnels_H_R E=10000 LR=0.2 DF=0.2 EP=0.2 SS=10.pkl")
-    # model = DynaQ.load(env, filename)
+    model.train()
     model.play()
