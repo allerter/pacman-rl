@@ -23,9 +23,11 @@ The project structure includes several key folders and files:
 ## Installation
 To install the necessary packages, use the provided conda environment file. First, make sure you have conda installed. If you don't have it installed, you can download it from [here](https://docs.conda.io/en/latest/miniconda.html).
 
-To create a new conda environment from the environment file, use the following command:
+To create a new conda environment from the environment file, use the following command to install requirements:
 ```bash
 conda env create -f environment.yml
+conda activate PacmanOpenAIGym_FHDortmund
+pip install tensorflow==2.18.0
 ```
 
 To activate the environment, use:
