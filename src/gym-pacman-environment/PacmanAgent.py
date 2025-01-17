@@ -1,5 +1,7 @@
+from time import sleep
 import gym
 from gym import logger
+from utils import get_level
 
 # TODO set the desired number of games to play
 episode_count = 1000
@@ -8,16 +10,8 @@ episode_count = 1000
 # Be aware that the gameworld is printed transposed to the console, to avoid mapping the coordinates and actions
 printState = True
 
-# TODO Set this to the desired level
-level = [
-    ["#", "#", "#", "#", "#", "#", "#"],
-    ["#", "*", "*", "P", "*", "*", "#"],
-    ["*", "*", "#", "*", "#", "*", "*"],
-    ["#", "*", "*", "*", "*", "*", "#"],
-    ["#", "#", "*", "#", "*", "#", "#"],
-    ["#", "H", "*", "*", "*", "R", "#"],
-    ["#", "#", "#", "*", "#", "#", "#"],
-]
+level_name = "RL05_intersecting_tunnels_H_R"
+level = get_level(level_name)
 
 # You can set this to False to change the agent's observation to Box from OpenAIGym - see also PacmanEnv.py
 # Otherwise a 2D array of tileTypes will be used
@@ -33,6 +27,16 @@ tileTypes = {
     "ghost_rnd": "R",
     "ghost_hunter": "H",
 }
+
+ENTITIES_MAP = {
+    "empty": 0,
+    "dot": 2,
+    "wall": 1,
+    "pacman": 3,
+    "random_ghost": 4,
+    "hunter_ghost": 5,
+}
+
 
 # Will be automatically set to True by the PacmanAgent if it is used and should not be set manually
 usingPythonAgent = False
@@ -97,12 +101,14 @@ if __name__ == "__main__":
         reward = 0
         done = False
 
-        while True:
+        while (action := input("Enter number: ")) != 5:
             # Determine the agent's next action based on the current observation and reward and execute it
-            env.render()
             # TODO better action selection
-            action = env.action_space.sample()
+            action = int(action)
+            print(action)
             observation, reward, done, debug = env.step(action)
+            env.render(action)
+            sleep(1)
             if done:
                 break
 

@@ -1,13 +1,11 @@
-# Python template for the Trends of AI semester project
-This is a template for the Trends of AI semester project. It includes a basic structure for the project, as well as a conda environment file to install the necessary packages.
+# ManPac: Reinforcement Learning for Pac-Man
+This readme contains information regarding the project structure and runtime instructions.
 
 ## Project structure
 The project structure is as follows:
 ```
-Trends-of-AI-Project-Template/
-├── data/
-│   ├── raw/
-│   ├── processed/
+pacman-rl/
+
 ├── models/
 ├── notebooks/
 ├── src/
@@ -15,24 +13,11 @@ Trends-of-AI-Project-Template/
 ├── README.md
 ```
 The project structure includes several key folders and files:
-- `data`: Stores raw and processed data
 - `notebooks`: Contains Jupyter notebooks
 - `src`: Holds the source code
-- `models`: Stores trained models
+- `models`: Stores models' information
 - `environment.yml`: Creates a conda environment with necessary packages
 - `README.md`: Provides project information
-
-Depending on your project's needs, you may need to add extra folders or files, or remove existing ones (e.g., omit the `src` folder if you're working exclusively with Jupyter notebooks).
-
-## Usage
-The conda environment file includes the necessary packages for the project. If you need to install additional packages, please add them to the [environment file](environment.yml)
- and update the environment by reinstalling it (**make sure to update the environment file in the repository as well including version numbers!**).
-
-When working on the project, make sure to use the provided project structure and follow the best practices for project organization. This includes using version control, writing clean and readable code, and documenting your work. Make sure to document your code and provide a README file with information about the project, including how to reproduce the results.
-
-When you're done with the project, make sure to clean up the code, remove unnecessary files, and provide a clean version of the project.
-
-**This is important to ensure that we can reproduce the results of the project and understand the work that has been done!**
 
 
 ## Installation
@@ -45,7 +30,7 @@ conda env create -f environment.yml
 
 To activate the environment, use:
 ```bash
-conda activate trends-of-ai-semester-project
+conda activate PacmanOpenAIGym_FHDortmund
 ```
 If you're using an IDE like PyCharm or VSCode, you have to select the environment in the IDE settings.
 
@@ -60,5 +45,30 @@ http://localhost:8888/lab?token=aa7e97c2d09bae01632db508730ab48cbc4609fc92c7fc6e
 ```
 The token can vary, so make sure to use the one provided in the output.
 
+## Models
+The models folder contains all the useful information for each different model and level of the game.
 
-&copy; 2024 Lucas Schönhold
+The `training_plots` folder contains plots of different hyperparameter combinations and their respective rewards.
+
+Using the training plots, for each level fine-tuned hyperparmeters have been saved in the `hyperparameters.ini` file which you can easily copy and replace with the one in the `src` folder to train and play the model.
+
+Finally, each level folder also has a saved model (with the .pkl extension) that you can easily load up and have it play any level. 
+
+## Usage
+First of all, activate the environment:
+
+
+```bash
+conda activate PacmanOpenAIGym_FHDortmund
+```
+
+To train a model and play the game, first set the desired level and model hyperparameters in `src/gym-pacman-environment/hyperparameters.ini`. Then run the `src/gym-pacman-environment/train_and_play.py` file.
+
+```bash
+python src/gym-pacman-environment/train_and_play.py
+```
+
+To play from a saved model, open `src/gym-pacman-environment/play_saved_model.py`, adjust the `filename` variable, and then run the file.
+
+
+&copy; 2025 Hazhir Amiri, Raed Kayali, Lucas Schönhold, 
