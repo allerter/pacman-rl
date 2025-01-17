@@ -13,7 +13,6 @@ if __name__ == "__main__":
 
     env = PacmanAgent.PacmanAgent()
     PacmanAgent.level_name = match = re.search(r"(?:DynaQ|DQN)\s+-\s+(RL\S+)", filename).group(1)
-    print(PacmanAgent.level_name)
     PacmanAgent.level = get_level(PacmanAgent.level_name)
     if "dynaq" in filename.lower():
         model = DynaQ.load(env, filename)
