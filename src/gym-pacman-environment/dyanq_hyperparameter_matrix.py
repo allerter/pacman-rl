@@ -7,7 +7,7 @@ import numpy as np
 
 if __name__ == "__main__":
     env = PacmanAgent()
-    learning_rates = [0.8]
+    # configuration matrices
     discount_factors = [0.7]
     exploration_probs = [0.2]
     simulated_steps = [8]
@@ -16,6 +16,7 @@ if __name__ == "__main__":
     epochs = 9000
     model = DynaQ
 
+    # run all combinations
     for i, learning_rate in enumerate(learning_rates):
         for j, discount_factor in enumerate(discount_factors):
             for k, exploration_prob in enumerate(exploration_probs):

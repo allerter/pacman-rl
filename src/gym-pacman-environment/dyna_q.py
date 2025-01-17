@@ -27,10 +27,12 @@ class DynaQ:
         self.level_name = PacmanAgent.level_name
 
     def state_to_index(self, state):
+        """Flattens a state and turns it into a string"""
         return ''.join(map(str, state.flatten().tolist()))
 
 
     def find_entities(self, state, entity_name) -> list[list[int, int]]:
+        """Finds entities within the environment"""
         results = []
         if entity_name == "ghost":
             for entity in ("hunter_ghost", "random_ghost"):
@@ -45,6 +47,7 @@ class DynaQ:
 
 
     def calculate_reward(self, state, done):
+        """Calculates reward for each state"""
         reward = 0
         if self.env.lastRemainingDots > self.env.remainingDots:
             reward += 1  # Eating a dot
@@ -65,6 +68,7 @@ class DynaQ:
 
 
     def get_useful_actions(self, state):
+        """Get viable actions for a state (actions that make pacman move)"""
         useful_actions = []
         position = self.find_entities(state, "pacman")[0]
         # north
@@ -94,11 +98,14 @@ class DynaQ:
         return useful_actions
 
     def get_best_action(self, state):
+        """Tries to come up with actions that could best benifit pacman
+        for example eating a dot, avoiding ghosts, etc
+        """
         position = self.find_entities(state, "pacman")[0]
         ghost_positions = self.find_entities(state, "ghost")
         useful_actions = []
-        useful_directions = []
-        available_actions = []
+        useful_directions = [] # directions that won't get closer to ghosts
+        available_actions = [] # actions that don't go into a wall
         # north
         try:
             if state[position[0] - 1, position[1]] != 1:
@@ -139,6 +146,7 @@ class DynaQ:
                         break
         except IndexError:
             pass
+        # consider actions that will result in eating a dot
         # north
         try:
             if "north" in useful_directions and state[position[0] - 1, position[1]] == 2:
@@ -164,6 +172,7 @@ class DynaQ:
         except IndexError:
             pass
 
+        # if no action with eating dots has been identified, take any that will not get closer to ghosts
         if not useful_actions:
             for direction in useful_directions:
                 if direction == "north":
@@ -175,11 +184,13 @@ class DynaQ:
                 else:
                     useful_actions.append(2)
         
+        # if still no action is identified, take any that won't move into a wall
         if not useful_actions:
             useful_actions = available_actions
         return useful_actions
 
     def save(self) -> str:
+        """save model data to file"""
         filename = f"{self.__class__.__name__} - {self.level_name} E={self.epochs} LR={self.learning_rate} DF={self.discount_factor} EP={self.exploration_prob} SS={self.simulated_steps}.pkl"
         data = {
             "level_name": self.level_name, 
@@ -197,6 +208,7 @@ class DynaQ:
 
     @classmethod
     def load(cls, env, filename):
+        """load model data from file"""
         with open(filename, "rb") as file:
             data = pickle.load(file)
         model = cls(env, data["epochs"], data["learning_rate"], data["discount_factor"], data["exploration_prob"], data["siumlated_steps"])
@@ -218,11 +230,13 @@ class DynaQ:
         return level                                                                                                  
 
     def train(self) -> list[float]:
+        """train the model and return rewards"""
         rewards = []
         for epoch in range(self.epochs):
             epoch_rewards = 0
             original_state = self.env.reset() 
             state = self.state_to_index(original_state)
+            # initialize tables
             if self.q_table.get(state) is None:
                 self.q_table[state] = [0, 0, 0, 0]
             if self.p_model.get(state) is None:
@@ -232,8 +246,8 @@ class DynaQ:
             done = False
             steps = 0
             self.env.lastRemainingDots = self.env.remainingDots
+            # restrict steps taken to avoid inifnite loops and useless actions
             while not done and steps < 200:
-                # Choose action with epsilon-greedy strategy
                 if np.random.rand() < self.exploration_prob:
                     action = np.random.choice(self.get_useful_actions(original_state))  # Explore
                 else:
@@ -242,6 +256,7 @@ class DynaQ:
                 next_state, reward, done, info = self.env.step(action)
                 original_state = next_state
                 next_state = self.state_to_index(next_state)
+                # initialize state cells
                 if self.q_table.get(next_state) is None:
                     self.q_table[next_state] = [0, 0, 0, 0]
                 if self.p_model.get(state) is None:
@@ -258,15 +273,19 @@ class DynaQ:
                     max(self.q_table[next_state])) - self.q_table[state][action]
                 self.p_model[state][action] = next_state
                 self.r_model[state][action] = reward
+                # keep track of states with values
+                # this will help optimize the planning where random elements need to be selected
                 self._valid_states.append(state)
 
                 # planning
                 for _ in range(self.simulated_steps):
+                    # get random state, action and its reward
                     sampled_state = random.choice(self._valid_states)
                     sampled_action = random.choice([i for i, value in enumerate(self.p_model[sampled_state]) if value != "0"])
                     simulated_next_state = self.p_model[sampled_state][sampled_action]
                     simulated_reward = self.r_model[sampled_state][sampled_action]
 
+                    # update q table from random state-action-reward
                     self.q_table[sampled_state][sampled_action] += self.learning_rate * (
                         simulated_reward
                         + self.discount_factor * max(self.q_table[simulated_next_state])
@@ -278,19 +297,15 @@ class DynaQ:
                 epoch_rewards += reward
             # print(f"Episode #{epoch} finished with reward: {epoch_rewards}")
             step = epoch / self.epochs
+            # reduce exploration prob after each episode
             self.exploration_prob = self.min_exploration_prob + (self.max_exploration_prob - self.min_exploration_prob) * (1 - math.log(1 + step))
-            # if self.exploration_prob > self.min_exploration_prob:
-            #     self.exploration_prob *= self.exploration_decreasing_decay
-            # print(self.exploration_prob)
             rewards.append(epoch_rewards)
         return rewards
     
     def play(self, verbose=True) -> list[list[bool, float]]:
+        """evaluate the model by playing"""
         episodes_rewards = [0, 0] # wins & total rewards
         for episode in range(5):
-            # new_grid = randomize_level(PacmanAgent.level, PacmanAgent.tileTypes)
-            # PacmanAgent.level = new_grid
-
             originial_state = self.env.reset()
             state = self.state_to_index(originial_state)
             done = False
@@ -298,6 +313,8 @@ class DynaQ:
             won = False
 
             while not done:
+                # try to find state in q table
+                # if state hasn't been explored during training, try to come up with a best action
                 q_values = self.q_table.get(state)
                 if q_values:
                     action =  q_values.index(max(q_values))
@@ -318,6 +335,7 @@ class DynaQ:
             episode_result = "Won :)" if won else "Lost!"
             if verbose:
                 print(f"Episode: {episode + 1}, Total Reward: {total_rewards} - {episode_result}")
+            # update play results
             episodes_rewards[0] += 1 if won else 0
             episodes_rewards[1] += total_rewards
         episodes_rewards[1] = round(episodes_rewards[1], 1)
