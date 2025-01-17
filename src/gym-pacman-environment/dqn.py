@@ -3,6 +3,7 @@ from pathlib import Path
 import random
 import os
 from collections import deque
+import re
 from time import sleep
 import tensorflow as tf
 import numpy as np
@@ -12,7 +13,7 @@ from tensorflow.keras.layers import Dense
 import PacmanAgent
 
 class DQN:
-    def _init_(self, env, state_size=None, action_space=None, discount_factor=None,
+    def __init__(self, env, state_size=49, action_space=4, discount_factor=None,
                 exploration_prob=None, learning_rate=None, 
                 batch_size=None, max_replay_size=None, epochs=None, target_update_freq=None):
         self.env = env
@@ -152,8 +153,9 @@ class DQN:
     @classmethod
     def load(cls, env, filename):
         """load model data from file"""
+        learning_rate = float(re.search(r"LR=([\d.]+)", filename).group(1))
         model_data = tf.keras.models.load_model(filename)
-        model = cls(env)
+        model = cls(env, learning_rate=learning_rate)
         model.dq_network = model_data
         return model
 
