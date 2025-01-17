@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from dyna_q import DynaQ
 from PacmanAgent import PacmanAgent, level_name
 from matplotlib import pyplot as plt
@@ -6,19 +7,23 @@ import numpy as np
 
 if __name__ == "__main__":
     env = PacmanAgent()
-    learning_rates = [0.2, 0.5]
-    discount_factors = [0.5, 0.8]
-    exploration_probs = [0.1, 0.2, 0.4]
-    simulated_steps = [3, 7]
+    learning_rates = [0.8]
+    discount_factors = [0.7]
+    exploration_probs = [0.2]
+    simulated_steps = [8]
     results_matrix = np.zeros((len(learning_rates), len(discount_factors), len(exploration_probs), len(simulated_steps)))
-    epochs = 1000
+    evaluation_matrix = np.zeros_like(results_matrix, dtype=object)  # To store [wins, total_rewards]
+    epochs = 9000
     model = DynaQ
 
     for i, learning_rate in enumerate(learning_rates):
         for j, discount_factor in enumerate(discount_factors):
             for k, exploration_prob in enumerate(exploration_probs):
                 for l, simulated_step in enumerate(simulated_steps):
-                    results_matrix[i, j, k, l] = sum(DynaQ(env, epochs, learning_rate, discount_factor, exploration_prob, simulated_step).train())
+                    current_model = DynaQ(env, epochs, learning_rate, discount_factor, exploration_prob, simulated_step)
+                    results_matrix[i, j, k, l] = sum(current_model.train())
+                    evaluation_results = current_model.play(verbose=False)  # -> [number_of_wins, total_rewards]
+                    evaluation_matrix[i, j, k, l] = evaluation_results  # Store evaluation results
 
     # Save and plot results for each exploration prob and simulated step
     for exploration_prob in exploration_probs:
@@ -26,6 +31,7 @@ if __name__ == "__main__":
         for simulated_step in simulated_steps:
             fixed_step_idx = simulated_steps.index(simulated_step)
             results_for_fixed_ep_and_step = results_matrix[:, :, fixed_ep_idx, fixed_step_idx]
+            evaluations_for_fixed_ep_and_step = evaluation_matrix[:, :, fixed_ep_idx, fixed_step_idx]
 
             # Plot results
             plt.figure(figsize=(10, 6))
@@ -37,6 +43,20 @@ if __name__ == "__main__":
                     marker='o', 
                     linewidth=2
                 )
+
+                # Add text annotations for number of wins and evaluation total rewards
+                for j, discount_factor in enumerate(discount_factors):
+                    num_wins, total_rewards = evaluations_for_fixed_ep_and_step[i, j]
+                    plt.text(
+                        discount_factor, 
+                        results_for_fixed_ep_and_step[i, j], 
+                        f"Evaluation Results\nWins:{num_wins}\nRewards:{total_rewards}",  # Include "Evaluation Results" at the top
+                        fontsize=10, 
+                        ha='center', 
+                        va='bottom', 
+                        bbox=dict(facecolor='white', alpha=0.8, edgecolor='gray'),
+                        multialignment='left'
+                    )
 
             # Add labels, title, and legend
             plt.xlabel('Discount Factor', fontsize=14)
@@ -52,7 +72,7 @@ if __name__ == "__main__":
             plt.grid(True, linestyle='--', alpha=0.7)
             plt.tight_layout()
             # Create the directory if it doesn't exist
-            save_dir = f"models/{model.__name__}/{level_name}"
+            save_dir = os.path.join(Path(__file__).resolve().parent.parent.parent, f"models/{model.__name__}/{level_name}")
             os.makedirs(save_dir, exist_ok=True)  # Create directory if it doesn't exist
 
             # Save plot

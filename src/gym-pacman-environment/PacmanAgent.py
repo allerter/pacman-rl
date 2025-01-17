@@ -1,3 +1,4 @@
+from time import sleep
 import gym
 from gym import logger
 from utils import get_level
@@ -9,7 +10,7 @@ episode_count = 1000
 # Be aware that the gameworld is printed transposed to the console, to avoid mapping the coordinates and actions
 printState = True
 
-level_name = "RL02_square_tunnel_H"
+level_name = "RL05_intersecting_tunnels_H_R"
 level = get_level(level_name)
 
 # You can set this to False to change the agent's observation to Box from OpenAIGym - see also PacmanEnv.py
@@ -100,12 +101,14 @@ if __name__ == "__main__":
         reward = 0
         done = False
 
-        while True:
+        while (action := input("Enter number: ")) != 5:
             # Determine the agent's next action based on the current observation and reward and execute it
             # TODO better action selection
-            action = env.action_space.sample()
-            env.render(action)
+            action = int(action)
+            print(action)
             observation, reward, done, debug = env.step(action)
+            env.render(action)
+            sleep(1)
             if done:
                 break
 

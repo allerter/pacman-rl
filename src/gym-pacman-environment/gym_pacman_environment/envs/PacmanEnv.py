@@ -60,10 +60,10 @@ class PacmanEnv(gym.Env):
         self.path = os.path.dirname(os.path.abspath(__file__))
 
         self.img_path = self.path + "/../img/"
-        self.pacman_img_up = pygame.image.load(self.img_path + "pacman_red_MyAgent_up.png")
-        self.pacman_img_left = pygame.image.load(self.img_path + "pacman_red_MyAgent_left.png")
-        self.pacman_img_right = pygame.image.load(self.img_path + "pacman_red_MyAgent_right.png")
-        self.pacman_img_down = pygame.image.load(self.img_path + "pacman_red_MyAgent_down.png")
+        self.pacman_img_up = pygame.image.load(self.img_path + "pacman_red_MyAgent_left.png")
+        self.pacman_img_left = pygame.image.load(self.img_path + "pacman_red_MyAgent_up.png")
+        self.pacman_img_right = pygame.image.load(self.img_path + "pacman_red_MyAgent_down.png")
+        self.pacman_img_down = pygame.image.load(self.img_path + "pacman_red_MyAgent_right.png")
         self.ghost_rnd_img = pygame.image.load(self.img_path + "ghost_blue_SIMPLE_RANDOM.png")
         self.ghost_hunter_img = pygame.image.load(self.img_path + "hw_ghost_hunter.png")
         self.dot_img = pygame.image.load(self.img_path + "dot.png")

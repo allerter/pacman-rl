@@ -1,4 +1,5 @@
 import configparser
+import math
 from pathlib import Path
 import pickle
 from time import sleep
@@ -16,56 +17,131 @@ class DynaQ:
         self.discount_factor = discount_factor
         self.exploration_prob = exploration_prob
         self.simulated_steps = siumlated_steps
+        self.min_exploration_prob = 0.1
+        self.max_exploration_prob = exploration_prob
+        self.exploration_decreasing_decay = 0.999
         self.q_table = dict()
         self.p_model = dict()
         self.r_model = dict()
+        self._valid_states = []
         self.level_name = PacmanAgent.level_name
 
     def state_to_index(self, state):
         return ''.join(map(str, state.flatten().tolist()))
 
 
-    def find_entity(self, state, entity_name):
-        result = np.where(state == PacmanAgent.ENTITIES_MAP[entity_name])
-        return (result[0][0], result[1][0]) if result[0] else None
+    def find_entities(self, state, entity_name) -> list[list[int, int]]:
+        results = []
+        if entity_name == "ghost":
+            for entity in ("hunter_ghost", "random_ghost"):
+                result = np.where(state == PacmanAgent.ENTITIES_MAP[entity])
+                if result[0]:
+                    results.append([result[0][0], result[1][0]])
+        else:
+            result = np.where(state == PacmanAgent.ENTITIES_MAP[entity_name])
+            if result[0]:
+                results.append([result[0][0], result[1][0]])
+        return results
 
 
     def calculate_reward(self, state, done):
         reward = 0
         if self.env.lastRemainingDots > self.env.remainingDots:
             reward += 1  # Eating a dot
-        if self.env.remainingDots == 0:
-            reward += 10  # Clear all dots (win condition)
+        if done and self.env.remainingDots == 0:
+            return reward + 5  # Clear all dots (win condition)
         if done and self.env.remainingDots > 0:
-            reward -= 5  # Penalty losing the game
-            return reward
-        pacmnan_position = self.find_entity(state, "pacman")
-        hunter_position = self.find_entity(state, "hunter_ghost")
-        if pacmnan_position is None:
-            return reward
-        # if next move puts us on the tile next to a ghost, make reward negative
-        if pacmnan_position[0] == hunter_position[0] and abs(hunter_position[1] - pacmnan_position[1]) <= 1:
-            reward = -1
-        if pacmnan_position[1] == hunter_position[1] and  abs(hunter_position[0] - pacmnan_position[0]) <= 1:
-            reward = -1
+            return reward - 5  # Penalty losing the game
+            
+        pacmnan_position = self.find_entities(state, "pacman")
+        pacmnan_position = pacmnan_position[0] if pacmnan_position else None
+        for ghost in self.find_entities(state, "hunter_ghost"):
+            # if next move puts us on the tile next to a ghost, make reward negative
+            if pacmnan_position[0] == ghost[0] and abs(ghost[1] - pacmnan_position[1]) <= 1:
+                reward -= 2
+            if pacmnan_position[1] == ghost[1] and abs(ghost[0] - pacmnan_position[0]) <= 1:
+                reward -= 2
         return reward
 
 
     def get_useful_actions(self, state):
         useful_actions = []
-        position = self.find_entity(state, "pacman")
+        position = self.find_entities(state, "pacman")[0]
         # north
-        if state[position[0] -1, position[1]] != 1:
-            useful_actions.append(0)
+        if state[position[0] - 1, position[1]] != 1:
+            useful_actions.append(1)
         # west
         if state[position[0], position[1] - 1] != 1:
-            useful_actions.append(1)
+            useful_actions.append(0)
         # east
         if state[position[0], position[1] + 1] != 1:
-            useful_actions.append(2)
+            useful_actions.append(3)
         # south
         if state[position[0] + 1, position[1]] != 1:
+            useful_actions.append(2)
+        return useful_actions
+
+    def get_best_action(self, state):
+        position = self.find_entities(state, "pacman")[0]
+        ghost_positions = self.find_entities(state, "ghost")
+        useful_actions = []
+        useful_directions = []
+        available_actions = []
+        # north
+        if state[position[0] - 1, position[1]] != 1:
+            available_actions.append(1)
+            for ghost in ghost_positions:
+                if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0] - 1) + abs(ghost[1] - position[1])):
+                    useful_directions.append("north")
+                    break
+        # west
+        if state[position[0], position[1] - 1] != 1:
+            available_actions.append(0)
+            for ghost in ghost_positions:
+                if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] - 1)):
+                    useful_directions.append("west")
+                    break
+        # east
+        if state[position[0], position[1] + 1] != 1:
+            available_actions.append(3)
+            for ghost in ghost_positions:
+                if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] + 1)):
+                    useful_directions.append("east")
+                    break
+        # south
+        if state[position[0] + 1, position[1]] != 1:
+            available_actions.append(2)
+            for ghost in ghost_positions:
+                if (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1] + 1)) > (abs(ghost[0] - position[0]) + abs(ghost[1] - position[1])):
+                    useful_directions.append("south")
+                    break
+
+        # north
+        if "north" in useful_directions and state[position[0] - 1, position[1]] == 2:
+            useful_actions.append(1)
+        # west
+        if "west" in useful_directions and state[position[0], position[1] - 1] == 2:
+            useful_actions.append(0)
+        # east
+        if "east" in useful_directions and state[position[0], position[1] + 1] == 2:
             useful_actions.append(3)
+        # south
+        if "south" in useful_directions and state[position[0] + 1, position[1]] == 2:
+            useful_actions.append(2)
+
+        if not useful_actions:
+            for direction in useful_directions:
+                if direction == "north":
+                    useful_actions.append(1)
+                elif direction == "west":
+                    useful_actions.append(0)
+                elif direction == "east":
+                    useful_actions.append(3)
+                else:
+                    useful_actions.append(2)
+        
+        if not useful_actions:
+            useful_actions = available_actions
         return useful_actions
 
     def save(self) -> str:
@@ -82,7 +158,7 @@ class DynaQ:
             "p_model": self.p_model,
             "r_model": self.r_model,
         }
-        with open(os.path.join(current_dir, filename), "wb") as file:
+        with open(os.path.join(os.path.join(Path(__file__).resolve().parent.parent.parent, f"models/{self.__class__.__name__}/{self.level_name}"), filename), "wb") as file:
             pickle.dump(data, file)
 
     @classmethod
@@ -95,9 +171,24 @@ class DynaQ:
         model.r_model = data["r_model"]
         return model
 
+    def switch_grid(self, level):
+        def find_element(array, target):
+            for row_index, row in enumerate(array):
+                for col_index, element in enumerate(row):
+                    if element == target:
+                        return row_index, col_index  # Return position as (row, column)
+
+        pacman = find_element(level, "P")
+        hunter = find_element(level, "H")
+        level[pacman[0]][pacman[1]], level[hunter[0]][hunter[1]] = level[hunter[0]][hunter[1]], level[pacman[0]][pacman[1]]
+        return level                                                                                                  
+
     def train(self) -> list[float]:
         rewards = []
         for epoch in range(self.epochs):
+            if epoch > self.epochs / 2:
+                new_grid = self.switch_grid(PacmanAgent.level)
+                PacmanAgent.level = new_grid
             epoch_rewards = 0
             original_state = self.env.reset() 
             state = self.state_to_index(original_state)
@@ -113,8 +204,7 @@ class DynaQ:
             while not done and steps < 200:
                 # Choose action with epsilon-greedy strategy
                 if np.random.rand() < self.exploration_prob:
-                    # action = np.random.choice(get_useful_actions(original_state))  # Explore
-                    action = self.env.action_space.sample()
+                    action = np.random.choice(self.get_useful_actions(original_state))  # Explore
                 else:
                     action =  self.q_table[state].index(max(self.q_table[state])) # Exploit
             
@@ -137,55 +227,72 @@ class DynaQ:
                     max(self.q_table[next_state])) - self.q_table[state][action]
                 self.p_model[state][action] = next_state
                 self.r_model[state][action] = reward
+                self._valid_states.append(state)
 
                 # planning
                 for _ in range(self.simulated_steps):
-                    sampled_state = random.choice(list(self.p_model.keys()))
-                    sampled_action = random.randrange(0, 4)
-
+                    sampled_state = random.choice(self._valid_states)
+                    sampled_action = random.choice([i for i, value in enumerate(self.p_model[sampled_state]) if value != "0"])
                     simulated_next_state = self.p_model[sampled_state][sampled_action]
                     simulated_reward = self.r_model[sampled_state][sampled_action]
 
                     self.q_table[sampled_state][sampled_action] += self.learning_rate * (
                         simulated_reward
-                        + self.discount_factor * max(self.q_table[next_state])
+                        + self.discount_factor * max(self.q_table[simulated_next_state])
                         - self.q_table[sampled_state][sampled_action]
                     )
 
                 state = next_state
                 steps += 1
                 epoch_rewards += reward
+            # print(f"Episode #{epoch} finished with reward: {epoch_rewards}")
+            step = epoch / self.epochs
+            self.exploration_prob = self.min_exploration_prob + (self.max_exploration_prob - self.min_exploration_prob) * (1 - math.log(1 + step))
+            # if self.exploration_prob > self.min_exploration_prob:
+            #     self.exploration_prob *= self.exploration_decreasing_decay
+            # print(self.exploration_prob)
             rewards.append(epoch_rewards)
         return rewards
     
-    def play(self) -> list[float]:
-        episode_rewards = []
+    def play(self, verbose=True) -> list[list[bool, float]]:
+        episodes_rewards = [0, 0] # wins & total rewards
         for episode in range(5):
             # new_grid = randomize_level(PacmanAgent.level, PacmanAgent.tileTypes)
             # PacmanAgent.level = new_grid
 
-            state = self.state_to_index(self.env.reset())
+            originial_state = self.env.reset()
+            state = self.state_to_index(originial_state)
             done = False
             total_rewards = 0
-            
+            won = False
+
             while not done:
                 q_values = self.q_table.get(state)
                 if q_values:
                     action =  q_values.index(max(q_values))
                 else:
-                    action = self.env.action_space.sample()
+                    useful_actions = self.get_best_action(originial_state)
+                    action = np.random.choice(useful_actions)
+                    if verbose:
+                        print(f"Taking random action from {useful_actions}: {action}")
                 next_state, reward, done, info = self.env.step(action)
+                originial_state = next_state
                 next_state = self.state_to_index(next_state)
-                self.env.render(action)
                 total_rewards += reward
                 state = next_state
-                sleep(0.5)
-                if done:
-                    print(f"Episode: {episode + 1}, Total Reward: {total_rewards}")
-                    break
-            episode_rewards.append(total_rewards)
+                if verbose:
+                    sleep(0.5)
+                    self.env.render(action)
+            won = True if self.env.remainingDots == 0 else False
+            episode_result = "Won :)" if won else "Lost!"
+            if verbose:
+                print(f"Episode: {episode + 1}, Total Reward: {total_rewards} - {episode_result}")
+            episodes_rewards[0] += 1 if won else 0
+            episodes_rewards[1] += total_rewards
+        episodes_rewards[1] = round(episodes_rewards[1], 1)
         self.env.close()
-        return episode_rewards
+
+        return episodes_rewards
 
 
 if __name__ == "__main__":
