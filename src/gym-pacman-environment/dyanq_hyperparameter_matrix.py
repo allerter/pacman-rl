@@ -1,16 +1,20 @@
 import os
 from pathlib import Path
 from dyna_q import DynaQ
-from PacmanAgent import PacmanAgent, level_name
+import PacmanAgent
 from matplotlib import pyplot as plt
+from utils import get_level
 import numpy as np
 
 if __name__ == "__main__":
-    env = PacmanAgent()
+    env = PacmanAgent.PacmanAgent()
     # configuration matrices
-    discount_factors = [0.7]
-    exploration_probs = [0.2]
-    simulated_steps = [8]
+    PacmanAgent.level_name = "RL05_intersecting_tunnels_H_R"
+    PacmanAgent.level = get_level(PacmanAgent.level_name)
+    learning_rates = [0.4, 0.8]
+    discount_factors = [0.4, 0.7]
+    exploration_probs = [0.2, 0.4]
+    simulated_steps = [8, 16]
     results_matrix = np.zeros((len(learning_rates), len(discount_factors), len(exploration_probs), len(simulated_steps)))
     evaluation_matrix = np.zeros_like(results_matrix, dtype=object)  # To store [wins, total_rewards]
     epochs = 9000
@@ -73,7 +77,7 @@ if __name__ == "__main__":
             plt.grid(True, linestyle='--', alpha=0.7)
             plt.tight_layout()
             # Create the directory if it doesn't exist
-            save_dir = os.path.join(Path(__file__).resolve().parent.parent.parent, f"models/{model.__name__}/{level_name}")
+            save_dir = os.path.join(Path(__file__).resolve().parent.parent.parent, f"models/{model.__name__}/{PacmanAgent.level_name}")
             os.makedirs(save_dir, exist_ok=True)  # Create directory if it doesn't exist
 
             # Save plot
