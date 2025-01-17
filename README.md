@@ -62,7 +62,7 @@ First of all, activate the environment:
 conda activate PacmanOpenAIGym_FHDortmund
 ```
 
-To train a model and play the game, first set the desired level and model hyperparameters in `src/gym-pacman-environment/hyperparameters.ini`. Then run the `src/gym-pacman-environment/train_and_play.py` file.
+To train a model and play the game, first set the desired level and model hyperparameters in `src/gym-pacman-environment/hyperparameters.ini` (for Dyna-Q you can omit the hyperparameters after `discount_factor`). Then run the `src/gym-pacman-environment/train_and_play.py` file.
 
 ```bash
 python src/gym-pacman-environment/train_and_play.py
