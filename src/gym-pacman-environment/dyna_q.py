@@ -180,7 +180,6 @@ class DynaQ:
         return useful_actions
 
     def save(self) -> str:
-        current_dir = Path(__file__).resolve().parent
         filename = f"{self.__class__.__name__} - {self.level_name} E={self.epochs} LR={self.learning_rate} DF={self.discount_factor} EP={self.exploration_prob} SS={self.simulated_steps}.pkl"
         data = {
             "level_name": self.level_name, 
@@ -221,9 +220,6 @@ class DynaQ:
     def train(self) -> list[float]:
         rewards = []
         for epoch in range(self.epochs):
-            if epoch > self.epochs / 2:
-                new_grid = self.switch_grid(PacmanAgent.level)
-                PacmanAgent.level = new_grid
             epoch_rewards = 0
             original_state = self.env.reset() 
             state = self.state_to_index(original_state)
