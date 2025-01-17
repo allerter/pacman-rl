@@ -231,6 +231,7 @@ dependencies:
   - soupsieve=2.5
   - sqlite=3.45.3
   - stack_data=0.6.3
+  - tensorflow=2.18.0
   - terminado=0.18.1
   - tinycss2=1.4.0
   - tk=8.6.13
